@@ -1,0 +1,78 @@
+apply plugin: 'java'
+apply plugin: 'jacoco'
+apply plugin: 'maven-publish'
+
+description = 'LBU-Blackboard-Backchannel'
+group = 'uk.ac.leedsbeckett'
+
+/**
+ * This is here because the dependency may be a snapshot version.
+ * Changing the resolution strategy means the ToolApi will be updated even
+ * when the snapshot version hasn't changed.
+ **/
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+    toolchain {
+            languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+/**
+ * This is here because the LTI dependency may be a snapshot version.
+ * Changing the resolution strategy means the ToolApi will be updated even
+ * when the snapshot version hasn't changed.
+ **/
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'org.apache.commons:commons-text:1.9'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'commons-codec:commons-codec:1.15'
+    implementation 'org.apache.commons:commons-csv:1.9.0'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.0'
+    implementation( 'uk.ac.leedsbeckett:lbu-backchannels:0.0.1-SNAPSHOT' )
+    { changing = true }
+}
+
+jar {
+    manifest {
+    }
+}
+
+tasks.named('test') {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+}
+
+publishing {
+  publications {
+    library(MavenPublication) {
+      from components.java
+    }
+  }
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url "https://maven.pkg.github.com/leeds-beckett-digital-learning/lbu-blackboard-backchannel"
+      credentials {
+        username = gitHubUserName
+        password = gitHubPrivateToken
+      }
+    }
+  }
+}
