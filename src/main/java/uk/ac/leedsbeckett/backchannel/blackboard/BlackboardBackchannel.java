@@ -26,6 +26,7 @@ import org.apache.http.message.BasicNameValuePair;
 import uk.ac.leedsbeckett.backchannel.Backchannel;
 import uk.ac.leedsbeckett.backchannel.JsonResult;
 import uk.ac.leedsbeckett.backchannel.OAuth2Token;
+import uk.ac.leedsbeckett.backchannel.Parameter;
 import uk.ac.leedsbeckett.backchannel.blackboard.data.Availability;
 import uk.ac.leedsbeckett.backchannel.blackboard.data.CourseMembershipV1;
 import uk.ac.leedsbeckett.backchannel.blackboard.data.CourseMembershipV1Input;
@@ -105,23 +106,21 @@ public class BlackboardBackchannel extends Backchannel
     return null;
   }
   
-  public JsonResult getV3Courses( String courseId, boolean org, String availability )
+  public JsonResult getV3Courses( ArrayList<Parameter> params )
   {
-    if ( StringUtils.isBlank( courseId ) )
-      return null;
-    
     OAuth2Token t = getAuthToken();
     String token = t.getAccessToken();
     String target = "https://" + platform + "/learn/api/public/v3/courses";
-    ArrayList<NameValuePair> params = new ArrayList<>();
-    
-    if ( !StringUtils.isBlank( courseId ) ) params.add( new BasicNameValuePair( "courseId", courseId ) );
-    params.add( new BasicNameValuePair( "organization", Boolean.toString( org ) ) );
-    if ( !StringUtils.isBlank( availability ) ) params.add( new BasicNameValuePair( "availability.available", availability ) );
-    
+
+    // Not sure if this is necessary?
+    ArrayList<NameValuePair> immutableparams = new ArrayList<>();
+    if ( params != null )
+      for ( Parameter p : params )
+        immutableparams.add( new BasicNameValuePair( p.getName(), p.getValue() ) );
+        
     try
     {
-      return getBlackboardRest( target, token, params, GetCoursesV3Results.class, RestExceptionMessage.class );
+      return getBlackboardRest( target, token, immutableparams, GetCoursesV3Results.class, RestExceptionMessage.class );
     }
     catch ( IOException ex )
     {
